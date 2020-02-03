@@ -32,6 +32,17 @@ public class SongService {
         VALUE_TONES = new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     }
 
+    /**
+     * <p>This method converse text to html. Removes lines signs and chords signs. Replaces tones to specific span html
+     * element. Thanks to it, it will be easy to change music key, because every span has info about it's tone.</p>
+     *
+     * before: <code>C#</code> <br />
+     * after: < span class="t1 tone"></span> <br />
+     *
+     * < span class="t<code>(tone value)</code> tone><span>
+     * @param text Text that will be converted to html.
+     * @return Text with replaced tones to html elements.
+     */
     public String textToHtml(String text) {
         String[] lines = text.split("\n");
         StringBuilder result = new StringBuilder();
