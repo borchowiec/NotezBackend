@@ -1,8 +1,11 @@
 package com.borchowiec.notez.service;
 
+import org.springframework.stereotype.Service;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Service
 public class SongService {
     private final Map<String, Integer> TONES_VALUE;
     private final String[] VALUE_TONES;
