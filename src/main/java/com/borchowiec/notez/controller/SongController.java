@@ -3,10 +3,13 @@ package com.borchowiec.notez.controller;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import javassist.NotFoundException;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class SongController {
@@ -33,5 +36,36 @@ public class SongController {
         song.setContent(content);
 
         songRepository.save(song);
+    }
+
+    /**
+     * Finds and returns song of specific id.
+     * @param id Id of a song.
+     * @return Song of specific id.
+     * @throws NotFoundException When there is no song of given id.
+     */
+    @GetMapping("/song/{id}")
+    public Song getSong(@PathVariable Long id) throws NotFoundException {
+        Optional<Song> result = songRepository.findById(id);
+
+        if (result.isPresent()) {
+            return result.get();
+        }
+        else {
+            throw new NotFoundException("Not found song of id: " + id);
+        }
+    }
+
+    /**
+     * @return List of all songs.
+     */
+    @GetMapping("/songs")
+    public List<Song> getSongs() {
+        return songRepository.findAll();
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public void handleNotFound(HttpServletResponse res, NotFoundException e) throws IOException {
+        res.sendError(404, e.getMessage());
     }
 }
