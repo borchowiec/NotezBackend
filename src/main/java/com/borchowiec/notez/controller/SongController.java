@@ -1,5 +1,6 @@
 package com.borchowiec.notez.controller;
 
+import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
@@ -63,6 +64,12 @@ public class SongController {
     public List<Song> getSongs() {
         return songRepository.findAll();
     }
+
+    @GetMapping("/songs/{phrase}")
+    public SearchResult getSongsByPhrase(@PathVariable String phrase) {
+        return null;
+    }
+
 
     @ExceptionHandler(NotFoundException.class)
     public void handleNotFound(HttpServletResponse res, NotFoundException e) throws IOException {

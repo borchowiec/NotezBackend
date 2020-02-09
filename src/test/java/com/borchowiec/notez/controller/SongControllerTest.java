@@ -1,5 +1,6 @@
 package com.borchowiec.notez.controller;
 
+import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -111,5 +113,36 @@ class SongControllerTest {
                 .andExpect(jsonPath("$[1].album", is(songs[1].getAlbum())))
                 .andExpect(jsonPath("$[1].content", is(songs[1].getContent())))
                 .andExpect(jsonPath("$[1].name", is(songs[1].getName())));
+    }
+
+    @Test
+    void getSongsByPhrase_properData() {
+
+        //todo
+        Song[] songs = {new Song(), new Song(), new Song()};
+        songs[0].setId(2);
+        songs[0].setAlbum("album");
+        songs[0].setAuthor("author");
+        songs[0].setContent("<span class=\"t9 tone\"></span> some text\nThey're forming");
+        songs[0].setName("song");
+
+        songs[1].setId(3);
+        songs[1].setAlbum("next album");
+        songs[1].setAuthor("authorsss");
+        songs[1].setContent("");
+        songs[1].setName("name");
+
+        songs[2].setId(4);
+        songs[2].setAlbum("next album");
+        songs[2].setAuthor("authors");
+        songs[2].setContent("asdasdasdasd\n\n");
+        songs[2].setName("title");
+
+        SearchResult searchResult = new SearchResult();
+        searchResult.setByName(Collections.singletonList(songs[0]));
+        searchResult.setByAuthor(Collections.singletonList(songs[1]));
+        searchResult.setByAlbum(Collections.singletonList(songs[2]));
+
+
     }
 }
