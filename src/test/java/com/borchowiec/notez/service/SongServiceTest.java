@@ -1,6 +1,13 @@
 package com.borchowiec.notez.service;
 
+import com.borchowiec.notez.model.Song;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,5 +95,99 @@ class SongServiceTest {
         String expected = "<span class=\"t9 tone\"></span>5          some text ?!>@?#!@     <span class=\"t2 tone\"></span>5  <span class=\"t4 tone\"></span>5\n" +
                 "They're going through a tight wind.";
         assertEquals(expected, text);
+    }
+
+    @Test
+    void combineTwoListsWithoutDuplicatesAndWithSizeLimit_noDuplicatesAboveLimit() {
+        // given
+        Song[] songs = new Song[]{
+            new Song(0, "name", "author", "album", "content", 10),
+            new Song(1, "name", "author", "album", "content", 10),
+            new Song(2, "name", "author", "album", "content", 10),
+            new Song(3, "name", "author", "album", "content", 10),
+            new Song(4, "name", "author", "album", "content", 10),
+            new Song(5, "name", "author", "album", "content", 10)
+        };
+        List<Song> first = Stream.of(songs[0], songs[1], songs[2]).collect(Collectors.toList());
+        List<Song> second = Stream.of(songs[3], songs[4], songs[5]).collect(Collectors.toList());
+        List<Song> expected = Stream.of(songs).collect(Collectors.toList());
+
+        // when
+        SongService songService = new SongService();
+        List<Song> result = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(first, second, 6);
+
+        // then
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void combineTwoListsWithoutDuplicatesAndWithSizeLimit_noDuplicatesBelowLimit() {
+// given
+        Song[] songs = new Song[]{
+                new Song(0, "name", "author", "album", "content", 10),
+                new Song(1, "name", "author", "album", "content", 10),
+                new Song(2, "name", "author", "album", "content", 10),
+                new Song(3, "name", "author", "album", "content", 10),
+                new Song(4, "name", "author", "album", "content", 10),
+                new Song(5, "name", "author", "album", "content", 10)
+        };
+        List<Song> first = Stream.of(songs[0], songs[1], songs[2]).collect(Collectors.toList());
+        List<Song> second = Stream.of(songs[3], songs[4], songs[5]).collect(Collectors.toList());
+        List<Song> expected = Stream
+                .of(Arrays.copyOfRange(songs, 0, 4))
+                .collect(Collectors.toList());
+
+        // when
+        SongService songService = new SongService();
+        List<Song> result = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(first, second, 4);
+
+        // then
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void combineTwoListsWithoutDuplicatesAndWithSizeLimit_duplicates() {
+        // given
+        Song[] songs = new Song[]{
+                new Song(0, "name", "author", "album", "content", 10),
+                new Song(1, "name", "author", "album", "content", 10),
+                new Song(2, "name", "author", "album", "content", 10),
+                new Song(3, "name", "author", "album", "content", 10),
+                new Song(4, "name", "author", "album", "content", 10),
+                new Song(5, "name", "author", "album", "content", 10)
+        };
+        List<Song> first = Stream.of(songs[0], songs[1], songs[3]).collect(Collectors.toList());
+        List<Song> second = Stream.of(songs[1], songs[3], songs[5]).collect(Collectors.toList());
+        List<Song> expected = Stream.of(songs[0], songs[1], songs[3], songs[5]).collect(Collectors.toList());
+
+        // when
+        SongService songService = new SongService();
+        List<Song> result = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(first, second, 6);
+
+        // then
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void combineTwoListsWithoutDuplicatesAndWithSizeLimit_firstListIsToBig() {
+        // given
+        Song[] songs = new Song[]{
+                new Song(0, "name", "author", "album", "content", 10),
+                new Song(1, "name", "author", "album", "content", 10),
+                new Song(2, "name", "author", "album", "content", 10),
+                new Song(3, "name", "author", "album", "content", 10),
+                new Song(4, "name", "author", "album", "content", 10),
+                new Song(5, "name", "author", "album", "content", 10)
+        };
+        List<Song> first = Stream.of(songs[0], songs[1], songs[2], songs[3]).collect(Collectors.toList());
+        List<Song> second = Stream.of(songs[1], songs[3], songs[5]).collect(Collectors.toList());
+        List<Song> expected = Stream.of(songs[0], songs[1], songs[2]).collect(Collectors.toList());
+
+        // when
+        SongService songService = new SongService();
+        List<Song> result = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(first, second, 3);
+
+        // then
+        assertEquals(expected, result);
     }
 }

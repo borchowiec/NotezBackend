@@ -1,8 +1,10 @@
 package com.borchowiec.notez.service;
 
+import com.borchowiec.notez.model.Song;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -74,5 +76,29 @@ public class SongService {
         }
 
         return result.toString();
+    }
+
+    /**
+     * Takes two lists and combine them, without duplicates. Final list won't be bigger than limit.
+     * @param first First list.
+     * @param second Second list.
+     * @param limit Limit of size of final list.
+     * @return Combined lists, without duplicates, not bigger than limit of size.
+     */
+    public List<Song> combineTwoListsWithoutDuplicatesAndWithSizeLimit(List<Song> first, List<Song> second, int limit) {
+
+        if (first.size() > limit) {
+            return first.subList(0, limit);
+        }
+
+        for (Song obj : second) {
+            if (first.size() >= limit) {
+                break;
+            }
+            if (!first.contains(obj)) {
+                first.add(obj);
+            }
+        }
+        return first;
     }
 }

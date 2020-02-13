@@ -5,19 +5,21 @@ import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -116,26 +118,24 @@ class SongControllerTest {
     }
 
     @Test
-    void getSongsByPhrase_properData() {
-
-        //todo
+    void getSongsByPhrase_properData() throws Exception {
         Song[] songs = {new Song(), new Song(), new Song()};
         songs[0].setId(2);
         songs[0].setAlbum("album");
         songs[0].setAuthor("author");
         songs[0].setContent("<span class=\"t9 tone\"></span> some text\nThey're forming");
-        songs[0].setName("song");
+        songs[0].setName("song phrase");
 
         songs[1].setId(3);
         songs[1].setAlbum("next album");
-        songs[1].setAuthor("authorsss");
+        songs[1].setAuthor("phrase");
         songs[1].setContent("");
         songs[1].setName("name");
 
         songs[2].setId(4);
         songs[2].setAlbum("next album");
         songs[2].setAuthor("authors");
-        songs[2].setContent("asdasdasdasd\n\n");
+        songs[2].setContent("asdasphrasedasdasd\n\n");
         songs[2].setName("title");
 
         SearchResult searchResult = new SearchResult();
@@ -143,6 +143,98 @@ class SongControllerTest {
         searchResult.setByAuthor(Collections.singletonList(songs[1]));
         searchResult.setByAlbum(Collections.singletonList(songs[2]));
 
+        when(songRepository.findByNameIgnoreCase(any(), any())).thenReturn(new LinkedList<>());
+        when(songRepository.findByNameContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByName());
+        when(songRepository.findByAuthorIgnoreCase(any(), any())).thenReturn(searchResult.getByAuthor());
+        when(songRepository.findByAuthorContainingIgnoreCase(any(), any())).thenReturn(new LinkedList<>());
+        when(songRepository.findByAlbumIgnoreCase(any(), any())).thenReturn(new LinkedList<>());
+        when(songRepository.findByAlbumContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByAlbum());
 
+        // todo receives sr has wrong byAlbum
+        when(songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(anyList(), anyList(), anyInt()))
+                .thenAnswer((Answer<List<Song>>) invocationOnMock -> {
+                    if (((List)invocationOnMock.getArgument(0)).size() > 0) {
+                        return invocationOnMock.getArgument(0);
+                    }
+                    else {
+                        return invocationOnMock.getArgument(1);
+                    }
+                });
+
+        mvc.perform(get("/songs/pHrAsE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.byName", hasSize(1)))
+                .andExpect(jsonPath("$.byName[0].id", is((int) songs[0].getId())))
+                .andExpect(jsonPath("$.byName[0].album", is(songs[0].getAlbum())))
+                .andExpect(jsonPath("$.byName[0].content", is(songs[0].getContent())))
+                .andExpect(jsonPath("$.byName[0].name", is(songs[0].getName())))
+                .andExpect(jsonPath("$.byAuthor", hasSize(1)))
+                .andExpect(jsonPath("$.byAuthor[0].id", is((int) songs[1].getId())))
+                .andExpect(jsonPath("$.byAuthor[0].album", is(songs[1].getAlbum())))
+                .andExpect(jsonPath("$.byAuthor[0].content", is(songs[1].getContent())))
+                .andExpect(jsonPath("$.byAuthor[0].name", is(songs[1].getName())))
+                .andExpect(jsonPath("$.byAlbum", hasSize(1)))
+                .andExpect(jsonPath("$.byAlbum[0].id", is((int) songs[2].getId())))
+                .andExpect(jsonPath("$.byAlbum[0].album", is(songs[2].getAlbum())))
+                .andExpect(jsonPath("$.byAlbum[0].content", is(songs[2].getContent())))
+                .andExpect(jsonPath("$.byAlbum[0].name", is(songs[2].getName())));
+    }
+
+    @Test
+    void getSongsByPhrase_repositoriesReturnsDuplicates() throws Exception {
+        Song[] songs = {new Song(), new Song(), new Song()};
+        songs[0].setId(2);
+        songs[0].setAlbum("album");
+        songs[0].setAuthor("author");
+        songs[0].setContent("<span class=\"t9 tone\"></span> some text\nThey're forming");
+        songs[0].setName("song phrase");
+
+        songs[1].setId(3);
+        songs[1].setAlbum("next album");
+        songs[1].setAuthor("phrase");
+        songs[1].setContent("");
+        songs[1].setName("name");
+
+        songs[2].setId(4);
+        songs[2].setAlbum("next album");
+        songs[2].setAuthor("authors");
+        songs[2].setContent("asdasphrasedasdasd\n\n");
+        songs[2].setName("title");
+
+        SearchResult searchResult = new SearchResult();
+        searchResult.setByName(Stream.of(songs[0]).collect(Collectors.toList()));
+        searchResult.setByAuthor(Stream.of(songs[1]).collect(Collectors.toList()));
+        searchResult.setByAlbum(Stream.of(songs[2]).collect(Collectors.toList()));
+
+        // repositories
+        when(songRepository.findByNameIgnoreCase(any(), any())).thenReturn(searchResult.getByName());
+        when(songRepository.findByNameContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByName());
+        when(songRepository.findByAuthorIgnoreCase(any(), any())).thenReturn(searchResult.getByAuthor());
+        when(songRepository.findByAuthorContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByAuthor());
+        when(songRepository.findByAlbumIgnoreCase(any(), any())).thenReturn(searchResult.getByAlbum());
+        when(songRepository.findByAlbumContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByAlbum());
+
+        // services
+        when(songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(anyList(), anyList(), anyInt()))
+            .thenAnswer((Answer<List<Song>>) invocationOnMock -> invocationOnMock.getArgument(0));
+
+
+        mvc.perform(get("/songs/pHrAsE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.byName", hasSize(1)))
+                .andExpect(jsonPath("$.byName[0].id", is((int) songs[0].getId())))
+                .andExpect(jsonPath("$.byName[0].album", is(songs[0].getAlbum())))
+                .andExpect(jsonPath("$.byName[0].content", is(songs[0].getContent())))
+                .andExpect(jsonPath("$.byName[0].name", is(songs[0].getName())))
+                .andExpect(jsonPath("$.byAuthor", hasSize(1)))
+                .andExpect(jsonPath("$.byAuthor[0].id", is((int) songs[1].getId())))
+                .andExpect(jsonPath("$.byAuthor[0].album", is(songs[1].getAlbum())))
+                .andExpect(jsonPath("$.byAuthor[0].content", is(songs[1].getContent())))
+                .andExpect(jsonPath("$.byAuthor[0].name", is(songs[1].getName())))
+                .andExpect(jsonPath("$.byAlbum", hasSize(1)))
+                .andExpect(jsonPath("$.byAlbum[0].id", is((int) songs[2].getId())))
+                .andExpect(jsonPath("$.byAlbum[0].album", is(songs[2].getAlbum())))
+                .andExpect(jsonPath("$.byAlbum[0].content", is(songs[2].getContent())))
+                .andExpect(jsonPath("$.byAlbum[0].name", is(songs[2].getName())));
     }
 }
