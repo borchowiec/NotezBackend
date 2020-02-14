@@ -10,10 +10,9 @@ import java.util.Map;
 @Service
 public class SongService {
     private final Map<String, Integer> TONES_VALUE;
-    private final String[] VALUE_TONES;
 
-    private final String LYRICS_SIGN = "$ly$";
-    private final String CHORDS_SIGN = "$ch$";
+    private static final String LYRICS_SIGN = "$ly$";
+    private static final String CHORDS_SIGN = "$ch$";
 
     public SongService() {
         TONES_VALUE = new LinkedHashMap<>();
@@ -34,7 +33,6 @@ public class SongService {
         TONES_VALUE.put("G", 7);
         TONES_VALUE.put("A", 9);
         TONES_VALUE.put("B", 11);
-        VALUE_TONES = new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     }
 
     /**
@@ -53,18 +51,19 @@ public class SongService {
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < lines.length; i++) {
-            String l = lines[i];
+            String line = lines[i];
             String readyLine;
 
-            if (l.indexOf(LYRICS_SIGN) == 0) { // lyrics line
-                readyLine = l.replace(LYRICS_SIGN, ""); // replace lyrics sign at the beginning
+            if (line.indexOf(LYRICS_SIGN) == 0) { // lyrics line
+                readyLine = line.replace(LYRICS_SIGN, ""); // remove lyrics sign at the beginning
                 result.append(readyLine);
                 if (i != lines.length - 1) {
                     result.append('\n'); // add sign of new line if it's not a last line
                 }
-            } else if (l.indexOf(CHORDS_SIGN) == 0) { // chords line
-                readyLine = l.replace(CHORDS_SIGN, "");
-                for (Map.Entry<String, Integer> entry : TONES_VALUE.entrySet()) { // replace all tones to html span
+            } else if (line.indexOf(CHORDS_SIGN) == 0) { // chords line
+                readyLine = line.replace(CHORDS_SIGN, "");
+                for (Map.Entry<String, Integer> entry : TONES_VALUE.entrySet()) {
+                    // replace all tones to html span with css class that represents tone
                     readyLine = readyLine.replaceAll(entry.getKey(),
                             "<span class=\"t" + entry.getValue() + " tone\"></span>");
                 }
@@ -73,6 +72,7 @@ public class SongService {
                     result.append('\n');
                 }
             }
+            // skip line without lyrics sign and chords sign at the beginning
         }
 
         return result.toString();
@@ -87,6 +87,7 @@ public class SongService {
      */
     public List<Song> combineTwoListsWithoutDuplicatesAndWithSizeLimit(List<Song> first, List<Song> second, int limit) {
 
+        // if first list is bigger than limit, return trimmed first list
         if (first.size() > limit) {
             return first.subList(0, limit);
         }

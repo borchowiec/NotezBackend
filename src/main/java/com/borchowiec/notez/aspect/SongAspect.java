@@ -9,10 +9,13 @@ import org.aspectj.lang.reflect.CodeSignature;
 import org.jboss.logging.Logger;
 import org.springframework.stereotype.Component;
 
+/**
+ * Logs operations on songs.
+ */
 @Aspect
 @Component
 public class SongAspect {
-    Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Before("execution(* com.borchowiec.notez.controller.SongController.addSong(..))")
     public void logAboutTryingToAddSong() {

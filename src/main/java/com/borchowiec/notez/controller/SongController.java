@@ -68,26 +68,28 @@ public class SongController {
     @Cacheable("songsByPhrase")
     public SearchResult getSongsByPhrase(@PathVariable String phrase) {
         SearchResult searchResult = new SearchResult();
-        Pageable pageable = PageRequest.of(0, 3, Sort.by("views").descending());
+        int sizeOfPage = 3;
+        int page = 0;
+        Pageable pageable = PageRequest.of(page, sizeOfPage, Sort.by("views").descending());
 
         List<Song> byName = songRepository.findByNameIgnoreCase(phrase, pageable);
-        if (byName.size() < 3) {
+        if (byName.size() < sizeOfPage) {
             List<Song> byNameContainingPhrase = songRepository.findByNameContainingIgnoreCase(phrase, pageable);
-            byName = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byName, byNameContainingPhrase, 3);
+            byName = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byName, byNameContainingPhrase, sizeOfPage);
         }
         searchResult.setByName(byName);
 
         List<Song> byAuthor = songRepository.findByAuthorIgnoreCase(phrase, pageable);
-        if (byAuthor.size() < 3) {
+        if (byAuthor.size() < sizeOfPage) {
             List<Song> byAuthorContainingPhrase = songRepository.findByAuthorContainingIgnoreCase(phrase, pageable);
-            byAuthor = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byAuthor, byAuthorContainingPhrase, 3);
+            byAuthor = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byAuthor, byAuthorContainingPhrase, sizeOfPage);
         }
         searchResult.setByAuthor(byAuthor);
 
         List<Song> byAlbum = songRepository.findByAlbumIgnoreCase(phrase, pageable);
-        if (byAlbum.size() < 3) {
+        if (byAlbum.size() < sizeOfPage) {
             List<Song> byAlbumContainingPhrase = songRepository.findByAlbumContainingIgnoreCase(phrase, pageable);
-            byAlbum = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byAlbum, byAlbumContainingPhrase, 3);
+            byAlbum = songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(byAlbum, byAlbumContainingPhrase, sizeOfPage);
         }
         searchResult.setByAlbum(byAlbum);
 

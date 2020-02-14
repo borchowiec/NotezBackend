@@ -2,6 +2,10 @@ package com.borchowiec.notez.model;
 
 import java.util.List;
 
+/**
+ * Represents result of searching songs by given phrase. Phrase can be containing in name, author or album. That's why
+ * there is three lists that represents these results.
+ */
 public class SearchResult {
     private List<Song> byName;
     private List<Song> byAuthor;
