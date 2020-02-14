@@ -5,6 +5,7 @@ import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -45,6 +46,7 @@ public class SongController {
      * @return Song of specific id.
      */
     @GetMapping("/song/{id}")
+    @Cacheable("song")
     public Song getSong(@PathVariable Long id) {
         return songRepository.findById(id).orElseThrow(() -> new SongNotFoundException(id));
     }
@@ -63,6 +65,7 @@ public class SongController {
      * @return Songs that contains phrase in name of song, author of song or album of song.
      */
     @GetMapping("/songs/{phrase}")
+    @Cacheable("songsByPhrase")
     public SearchResult getSongsByPhrase(@PathVariable String phrase) {
         SearchResult searchResult = new SearchResult();
         Pageable pageable = PageRequest.of(0, 3, Sort.by("views").descending());
