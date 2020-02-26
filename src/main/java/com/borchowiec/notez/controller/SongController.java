@@ -1,11 +1,10 @@
 package com.borchowiec.notez.controller;
 
 import com.borchowiec.notez.exception.SongNotFoundException;
-import com.borchowiec.notez.model.SearchResult;
+import com.borchowiec.notez.payload.SearchResultResponse;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -70,8 +69,8 @@ public class SongController {
     @CrossOrigin("*") //todo temporary
     @GetMapping("/songs/{phrase}")
     @Cacheable("songsByPhrase")
-    public SearchResult getSongsByPhrase(@PathVariable String phrase) {
-        SearchResult searchResult = new SearchResult();
+    public SearchResultResponse getSongsByPhrase(@PathVariable String phrase) {
+        SearchResultResponse searchResult = new SearchResultResponse();
         int sizeOfPage = 3;
         int page = 0;
         Pageable pageable = PageRequest.of(page, sizeOfPage, Sort.by("views").descending());

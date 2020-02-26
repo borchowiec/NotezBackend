@@ -1,11 +1,10 @@
 package com.borchowiec.notez.controller;
 
-import com.borchowiec.notez.model.SearchResult;
+import com.borchowiec.notez.payload.SearchResultResponse;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -138,7 +137,7 @@ class SongControllerTest {
         songs[2].setContent("asdasphrasedasdasd\n\n");
         songs[2].setName("title");
 
-        SearchResult searchResult = new SearchResult();
+        SearchResultResponse searchResult = new SearchResultResponse();
         searchResult.setByName(Collections.singletonList(songs[0]));
         searchResult.setByAuthor(Collections.singletonList(songs[1]));
         searchResult.setByAlbum(Collections.singletonList(songs[2]));
@@ -201,7 +200,7 @@ class SongControllerTest {
         songs[2].setContent("asdasphrasedasdasd\n\n");
         songs[2].setName("title");
 
-        SearchResult searchResult = new SearchResult();
+        SearchResultResponse searchResult = new SearchResultResponse();
         searchResult.setByName(Stream.of(songs[0]).collect(Collectors.toList()));
         searchResult.setByAuthor(Stream.of(songs[1]).collect(Collectors.toList()));
         searchResult.setByAlbum(Stream.of(songs[2]).collect(Collectors.toList()));
