@@ -70,7 +70,7 @@ public class SongController {
     @GetMapping("/songs/{phrase}")
     @Cacheable("songsByPhrase")
     public SearchResultResponse getSongsByPhrase(@PathVariable String phrase) {
-        SearchResultResponse searchResult = new SearchResultResponse();
+        SearchResultResponse searchResult = new SearchResultResponse(); // todo move it to service ad
         int sizeOfPage = 3;
         int page = 0;
         Pageable pageable = PageRequest.of(page, sizeOfPage, Sort.by("views").descending());
