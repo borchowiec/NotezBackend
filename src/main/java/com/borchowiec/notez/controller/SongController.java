@@ -5,6 +5,7 @@ import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +46,7 @@ public class SongController {
      * @param id Id of a song.
      * @return Song of specific id.
      */
+    @CrossOrigin("*") //todo temporary
     @GetMapping("/song/{id}")
     @Cacheable("song")
     public Song getSong(@PathVariable Long id) {
@@ -54,6 +56,7 @@ public class SongController {
     /**
      * @return List of all songs.
      */
+    @CrossOrigin("*") //todo temporary
     @GetMapping("/songs")
     public List<Song> getSongs() {
         return songRepository.findAll();
@@ -64,6 +67,7 @@ public class SongController {
      * @param phrase Given phrase.
      * @return Songs that contains phrase in name of song, author of song or album of song.
      */
+    @CrossOrigin("*") //todo temporary
     @GetMapping("/songs/{phrase}")
     @Cacheable("songsByPhrase")
     public SearchResult getSongsByPhrase(@PathVariable String phrase) {

@@ -2,6 +2,7 @@ package com.borchowiec.notez.model;
 
 import java.util.List;
 
+//todo move it to payload
 /**
  * Represents result of searching songs by given phrase. Phrase can be containing in name, author or album. That's why
  * there is three lists that represents these results.
