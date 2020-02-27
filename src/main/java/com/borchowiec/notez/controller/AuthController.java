@@ -42,10 +42,10 @@ public class AuthController {
     private RoleRepository roleRepository;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    JwtTokenProvider tokenProvider;
+    private JwtTokenProvider tokenProvider;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
