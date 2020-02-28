@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.transaction.Transactional;
 import java.util.List;
 
+/**
+ * Contains methods that modifies, adds, removes or returns songs.
+ */
 @RestController
 public class SongController {
 
@@ -96,6 +99,10 @@ public class SongController {
         return searchResult;
     }
 
+    /**
+     * Increments views of specific song.
+     * @param songId Id of song.
+     */
     @Transactional
     @PatchMapping("/song/increment-views/{songId}")
     public void incrementViewsInSong(@PathVariable long songId) {
