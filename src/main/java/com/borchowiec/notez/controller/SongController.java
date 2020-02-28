@@ -1,8 +1,8 @@
 package com.borchowiec.notez.controller;
 
 import com.borchowiec.notez.exception.SongNotFoundException;
-import com.borchowiec.notez.payload.SearchResultResponse;
 import com.borchowiec.notez.model.Song;
+import com.borchowiec.notez.payload.SearchResultResponse;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,8 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class SongController {
@@ -96,6 +96,7 @@ public class SongController {
         return searchResult;
     }
 
+    @Transactional
     @PatchMapping("/song/increment-views/{songId}")
     public void incrementViewsInSong(@PathVariable long songId) {
         Song song = songRepository.findById(songId).orElseThrow(() -> new SongNotFoundException(songId));
