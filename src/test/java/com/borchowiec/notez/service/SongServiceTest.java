@@ -4,12 +4,11 @@ import com.borchowiec.notez.model.Song;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SongServiceTest {
 
@@ -122,7 +121,7 @@ class SongServiceTest {
 
     @Test
     void combineTwoListsWithoutDuplicatesAndWithSizeLimit_noDuplicatesBelowLimit() {
-// given
+    // given
         Song[] songs = new Song[]{
                 new Song(0, "name", "author", "album", "content", 10),
                 new Song(1, "name", "author", "album", "content", 10),
@@ -189,5 +188,20 @@ class SongServiceTest {
 
         // then
         assertEquals(expected, result);
+    }
+
+    @Test
+    void incrementViews_shouldHaveIncreasedViews() {
+        // given
+        Song song = new Song();
+        song.setViews(100);
+
+        // when
+        SongService songService = new SongService();
+        Song result = songService.incrementViews(song);
+
+        // then
+        assertEquals(101, result.getViews());
+        assertEquals(song, result);
     }
 }

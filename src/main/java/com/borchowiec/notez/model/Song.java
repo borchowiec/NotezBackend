@@ -1,16 +1,19 @@
 package com.borchowiec.notez.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * Entity that represents song.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Song {
     @Id
     @GeneratedValue
@@ -25,6 +28,22 @@ public class Song {
 
     @JsonIgnore
     private int views;
+
+    @JsonIgnore
+    @CreatedDate
+    private long createdDate;
+
+    @JsonIgnore
+    @LastModifiedDate
+    private long lastModifiedDate;
+
+    @JsonIgnore
+    @CreatedBy
+    private long createdBy;
+
+    @JsonIgnore
+    @LastModifiedBy
+    private long lastModifiedBy;
 
     public Song() {
     }
@@ -84,5 +103,37 @@ public class Song {
 
     public void setViews(int views) {
         this.views = views;
+    }
+
+    public long getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(long createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public long getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(long lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public long getLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    public void setLastModifiedBy(long lastModifiedBy) {
+        this.lastModifiedBy = lastModifiedBy;
     }
 }

@@ -1,4 +1,6 @@
-package com.borchowiec.notez.model;
+package com.borchowiec.notez.payload;
+
+import com.borchowiec.notez.model.Song;
 
 import java.util.List;
 
@@ -6,7 +8,7 @@ import java.util.List;
  * Represents result of searching songs by given phrase. Phrase can be containing in name, author or album. That's why
  * there is three lists that represents these results.
  */
-public class SearchResult {
+public class SearchResultResponse {
     private List<Song> byName;
     private List<Song> byAuthor;
     private List<Song> byAlbum;

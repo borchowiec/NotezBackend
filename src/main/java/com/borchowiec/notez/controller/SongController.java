@@ -1,8 +1,8 @@
 package com.borchowiec.notez.controller;
 
 import com.borchowiec.notez.exception.SongNotFoundException;
-import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
+import com.borchowiec.notez.payload.SearchResultResponse;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.service.SongService;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
@@ -28,7 +29,6 @@ public class SongController {
      * Converts lyrics to proper html text and then, puts song to database.
      * @param song Song that will be added to database.
      */
-    @CrossOrigin("*") //todo temporary
     @PostMapping("/song")
     public void addSong(@RequestBody Song song) {
 
@@ -66,8 +66,8 @@ public class SongController {
      */
     @GetMapping("/songs/{phrase}")
     @Cacheable("songsByPhrase")
-    public SearchResult getSongsByPhrase(@PathVariable String phrase) {
-        SearchResult searchResult = new SearchResult();
+    public SearchResultResponse getSongsByPhrase(@PathVariable String phrase) {
+        SearchResultResponse searchResult = new SearchResultResponse(); // todo move it to service ad
         int sizeOfPage = 3;
         int page = 0;
         Pageable pageable = PageRequest.of(page, sizeOfPage, Sort.by("views").descending());
@@ -94,5 +94,12 @@ public class SongController {
         searchResult.setByAlbum(byAlbum);
 
         return searchResult;
+    }
+
+    @Transactional
+    @PatchMapping("/song/increment-views/{songId}")
+    public void incrementViewsInSong(@PathVariable long songId) {
+        Song song = songRepository.findById(songId).orElseThrow(() -> new SongNotFoundException(songId));
+        songService.incrementViews(song);
     }
 }

@@ -1,16 +1,23 @@
 package com.borchowiec.notez.controller;
 
-import com.borchowiec.notez.model.SearchResult;
 import com.borchowiec.notez.model.Song;
+import com.borchowiec.notez.payload.SearchResultResponse;
+import com.borchowiec.notez.repository.RoleRepository;
 import com.borchowiec.notez.repository.SongRepository;
+import com.borchowiec.notez.repository.UserRepository;
+import com.borchowiec.notez.security.CustomUserDetailsService;
+import com.borchowiec.notez.security.JwtAuthenticationEntryPoint;
+import com.borchowiec.notez.security.JwtTokenProvider;
 import com.borchowiec.notez.service.SongService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
@@ -21,8 +28,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static sun.plugin2.util.PojoUtil.toJson;
@@ -34,7 +40,28 @@ class SongControllerTest {
     private MockMvc mvc;
 
     @MockBean
+    AuthenticationManager authenticationManager;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private RoleRepository roleRepository;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+
+    @MockBean
+    private JwtTokenProvider tokenProvider;
+
+    @MockBean
     private SongRepository songRepository;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockBean
+    private JwtAuthenticationEntryPoint unauthorizedHandler;
 
     @MockBean
     private SongService songService;
@@ -138,7 +165,7 @@ class SongControllerTest {
         songs[2].setContent("asdasphrasedasdasd\n\n");
         songs[2].setName("title");
 
-        SearchResult searchResult = new SearchResult();
+        SearchResultResponse searchResult = new SearchResultResponse();
         searchResult.setByName(Collections.singletonList(songs[0]));
         searchResult.setByAuthor(Collections.singletonList(songs[1]));
         searchResult.setByAlbum(Collections.singletonList(songs[2]));
@@ -150,7 +177,6 @@ class SongControllerTest {
         when(songRepository.findByAlbumIgnoreCase(any(), any())).thenReturn(new LinkedList<>());
         when(songRepository.findByAlbumContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByAlbum());
 
-        // todo receives sr has wrong byAlbum
         when(songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(anyList(), anyList(), anyInt()))
                 .thenAnswer((Answer<List<Song>>) invocationOnMock -> {
                     if (((List)invocationOnMock.getArgument(0)).size() > 0) {
@@ -201,7 +227,7 @@ class SongControllerTest {
         songs[2].setContent("asdasphrasedasdasd\n\n");
         songs[2].setName("title");
 
-        SearchResult searchResult = new SearchResult();
+        SearchResultResponse searchResult = new SearchResultResponse();
         searchResult.setByName(Stream.of(songs[0]).collect(Collectors.toList()));
         searchResult.setByAuthor(Stream.of(songs[1]).collect(Collectors.toList()));
         searchResult.setByAlbum(Stream.of(songs[2]).collect(Collectors.toList()));
@@ -236,5 +262,18 @@ class SongControllerTest {
                 .andExpect(jsonPath("$.byAlbum[0].album", is(songs[2].getAlbum())))
                 .andExpect(jsonPath("$.byAlbum[0].content", is(songs[2].getContent())))
                 .andExpect(jsonPath("$.byAlbum[0].name", is(songs[2].getName())));
+    }
+
+    @Test
+    void incrementViewsInSong_songExists_songsViewsShouldBeIncremented() throws Exception {
+        Song song = new Song();
+        song.setViews(100);
+
+        when(songRepository.findById(any())).thenReturn(Optional.of(song));
+        song.setViews(song.getViews() + 1);
+        when(songService.incrementViews(any())).thenReturn(song);
+
+        mvc.perform(patch("/songs/increment-views/1")).andExpect(status().isOk());
+        Assertions.assertEquals(101, song.getViews());
     }
 }
