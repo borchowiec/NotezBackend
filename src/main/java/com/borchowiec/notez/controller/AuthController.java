@@ -28,6 +28,9 @@ import javax.validation.Valid;
 import java.net.URI;
 import java.util.Collections;
 
+/**
+ * Contains method that registers new users and returns authentication tokens.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -47,6 +50,11 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
+    /**
+     * Signs in user.
+     * @param loginRequest Payload that contains information needed to sign in user.
+     * @return Authentication token.
+     */
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -63,6 +71,11 @@ public class AuthController {
         return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
     }
 
+    /**
+     * Adds new user to database.
+     * @param signUpRequest New user information.
+     * @return Information if operation was successful.
+     */
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
