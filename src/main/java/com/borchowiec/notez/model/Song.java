@@ -8,6 +8,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * Entity that represents song.
@@ -19,8 +21,16 @@ public class Song {
     @GeneratedValue
     private long id;
 
+    @NotBlank
+    @Size(max = 100)
     private String name;
+
+    @NotBlank
+    @Size(max = 100)
     private String author;
+
+    @NotBlank
+    @Size(max = 100)
     private String album;
 
     @Column(columnDefinition = "TEXT")
