@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class SongNotFoundAdvice {
 
+    /**
+     * Handles throwing {@link SongNotFoundException} by returning 404 Http Status, and message.
+     * @param e Exception
+     * @return Message of exception.
+     */
     @ResponseBody
     @ExceptionHandler(SongNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
