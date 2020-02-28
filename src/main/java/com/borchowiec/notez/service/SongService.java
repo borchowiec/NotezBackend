@@ -102,4 +102,10 @@ public class SongService {
         }
         return first;
     }
+
+    public Song incrementViews(Song song) {
+        int views = song.getViews() + 1;
+        song.setViews(views);
+        return song;
+    }
 }

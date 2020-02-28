@@ -9,6 +9,7 @@ import com.borchowiec.notez.security.CustomUserDetailsService;
 import com.borchowiec.notez.security.JwtAuthenticationEntryPoint;
 import com.borchowiec.notez.security.JwtTokenProvider;
 import com.borchowiec.notez.service.SongService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static sun.plugin2.util.PojoUtil.toJson;
@@ -177,7 +177,6 @@ class SongControllerTest {
         when(songRepository.findByAlbumIgnoreCase(any(), any())).thenReturn(new LinkedList<>());
         when(songRepository.findByAlbumContainingIgnoreCase(any(), any())).thenReturn(searchResult.getByAlbum());
 
-        // todo receives sr has wrong byAlbum
         when(songService.combineTwoListsWithoutDuplicatesAndWithSizeLimit(anyList(), anyList(), anyInt()))
                 .thenAnswer((Answer<List<Song>>) invocationOnMock -> {
                     if (((List)invocationOnMock.getArgument(0)).size() > 0) {
@@ -263,5 +262,18 @@ class SongControllerTest {
                 .andExpect(jsonPath("$.byAlbum[0].album", is(songs[2].getAlbum())))
                 .andExpect(jsonPath("$.byAlbum[0].content", is(songs[2].getContent())))
                 .andExpect(jsonPath("$.byAlbum[0].name", is(songs[2].getName())));
+    }
+
+    @Test
+    void incrementViewsInSong_songExists_songsViewsShouldBeIncremented() throws Exception {
+        Song song = new Song();
+        song.setViews(100);
+
+        when(songRepository.findById(any())).thenReturn(Optional.of(song));
+        song.setViews(song.getViews() + 1);
+        when(songService.incrementViews(any())).thenReturn(song);
+
+        mvc.perform(patch("/songs/increment-views/1")).andExpect(status().isOk());
+        Assertions.assertEquals(101, song.getViews());
     }
 }

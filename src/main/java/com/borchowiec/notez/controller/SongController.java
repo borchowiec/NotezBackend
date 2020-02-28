@@ -12,10 +12,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class SongController {
-    // todo add views to song
 
     private SongRepository songRepository;
     private SongService songService;
@@ -29,7 +29,6 @@ public class SongController {
      * Converts lyrics to proper html text and then, puts song to database.
      * @param song Song that will be added to database.
      */
-    @CrossOrigin("*") //todo temporary
     @PostMapping("/song")
     public void addSong(@RequestBody Song song) {
 
@@ -46,7 +45,6 @@ public class SongController {
      * @param id Id of a song.
      * @return Song of specific id.
      */
-    @CrossOrigin("*") //todo temporary
     @GetMapping("/song/{id}")
     @Cacheable("song")
     public Song getSong(@PathVariable Long id) {
@@ -56,7 +54,6 @@ public class SongController {
     /**
      * @return List of all songs.
      */
-    @CrossOrigin("*") //todo temporary
     @GetMapping("/songs")
     public List<Song> getSongs() {
         return songRepository.findAll();
@@ -67,7 +64,6 @@ public class SongController {
      * @param phrase Given phrase.
      * @return Songs that contains phrase in name of song, author of song or album of song.
      */
-    @CrossOrigin("*") //todo temporary
     @GetMapping("/songs/{phrase}")
     @Cacheable("songsByPhrase")
     public SearchResultResponse getSongsByPhrase(@PathVariable String phrase) {
@@ -98,5 +94,11 @@ public class SongController {
         searchResult.setByAlbum(byAlbum);
 
         return searchResult;
+    }
+
+    @PatchMapping("/song/increment-views/{songId}")
+    public void incrementViewsInSong(@PathVariable long songId) {
+        Song song = songRepository.findById(songId).orElseThrow(() -> new SongNotFoundException(songId));
+        songService.incrementViews(song);
     }
 }

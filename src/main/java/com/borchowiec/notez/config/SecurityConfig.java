@@ -72,6 +72,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
             .antMatchers(HttpMethod.GET, "/songs", "/songs/*", "/song/*")
             .permitAll()
+            .antMatchers(HttpMethod.PATCH,"/song/increment-views/*")
+            .permitAll()
             .antMatchers("/api/auth/**")
             .permitAll()
             .anyRequest()
