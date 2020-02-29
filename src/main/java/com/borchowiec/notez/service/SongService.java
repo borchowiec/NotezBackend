@@ -102,4 +102,15 @@ public class SongService {
         }
         return first;
     }
+
+    /**
+     * Increments views of given song.
+     * @param song Song that's views will be incremented.
+     * @return Song with incremented views. It's actually same reference.
+     */
+    public Song incrementViews(Song song) {
+        int views = song.getViews() + 1;
+        song.setViews(views);
+        return song;
+    }
 }
