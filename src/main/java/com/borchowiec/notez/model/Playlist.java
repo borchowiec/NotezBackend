@@ -1,5 +1,6 @@
 package com.borchowiec.notez.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -22,6 +23,7 @@ public class Playlist {
     @OneToMany
     private List<Song> songs;
 
+    @JsonIgnore
     @CreatedBy
     private long owner;
 
