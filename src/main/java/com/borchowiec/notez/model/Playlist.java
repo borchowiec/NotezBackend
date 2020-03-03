@@ -8,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -23,7 +24,6 @@ public class Playlist {
     @OneToMany
     private List<Song> songs;
 
-    @JsonIgnore
     @CreatedBy
     private long owner;
 
@@ -57,5 +57,21 @@ public class Playlist {
 
     public void setOwner(long owner) {
         this.owner = owner;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Playlist playlist = (Playlist) o;
+        return id == playlist.id &&
+                owner == playlist.owner &&
+                Objects.equals(name, playlist.name) &&
+                Objects.equals(songs, playlist.songs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, songs, owner);
     }
 }

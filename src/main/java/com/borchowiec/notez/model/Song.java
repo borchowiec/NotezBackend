@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.Objects;
 
 /**
  * Entity that represents song.
@@ -145,5 +146,27 @@ public class Song {
 
     public void setLastModifiedBy(long lastModifiedBy) {
         this.lastModifiedBy = lastModifiedBy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Song song = (Song) o;
+        return id == song.id &&
+                views == song.views &&
+                createdDate == song.createdDate &&
+                lastModifiedDate == song.lastModifiedDate &&
+                createdBy == song.createdBy &&
+                lastModifiedBy == song.lastModifiedBy &&
+                Objects.equals(name, song.name) &&
+                Objects.equals(author, song.author) &&
+                Objects.equals(album, song.album) &&
+                Objects.equals(content, song.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, author, album, content, views, createdDate, lastModifiedDate, createdBy, lastModifiedBy);
     }
 }
