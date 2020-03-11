@@ -1,6 +1,6 @@
 package com.borchowiec.notez.payload;
 
-public class AddSongToPlaylistRequest {
+public class SongAndPlaylistRequest {
     private long songId;
     private long playlistId;
 

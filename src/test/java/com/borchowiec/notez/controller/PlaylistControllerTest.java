@@ -3,7 +3,7 @@ package com.borchowiec.notez.controller;
 import com.borchowiec.notez.model.Playlist;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.model.User;
-import com.borchowiec.notez.payload.AddSongToPlaylistRequest;
+import com.borchowiec.notez.payload.SongAndPlaylistRequest;
 import com.borchowiec.notez.payload.AddSongToPlaylistResponse;
 import com.borchowiec.notez.payload.PlaylistResponse;
 import com.borchowiec.notez.payload.PlaylistsResponse;
@@ -15,7 +15,6 @@ import com.borchowiec.notez.security.CustomUserDetailsService;
 import com.borchowiec.notez.security.JwtAuthenticationEntryPoint;
 import com.borchowiec.notez.security.JwtTokenProvider;
 import com.borchowiec.notez.service.PlaylistService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -397,7 +395,7 @@ class PlaylistControllerTest {
         playlist.setOwner(10L);
         playlist.setSongs(new LinkedList<>(songList));
 
-        AddSongToPlaylistRequest request = new AddSongToPlaylistRequest();
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
         request.setPlaylistId(playlist.getId());
         request.setSongId(song.getId());
         String requestAsString = objectMapper.writeValueAsString(request);
@@ -430,7 +428,7 @@ class PlaylistControllerTest {
     void addSongToPlaylist_playlistDoesntExist_shouldReturn404() throws Exception {
         Principal principal = new PrincipalImpl("principal");
 
-        AddSongToPlaylistRequest request = new AddSongToPlaylistRequest();
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
         request.setPlaylistId(1L);
         request.setSongId(2L);
         String requestAsString = objectMapper.writeValueAsString(request);
@@ -451,7 +449,7 @@ class PlaylistControllerTest {
 
         Playlist playlist = new Playlist();
 
-        AddSongToPlaylistRequest request = new AddSongToPlaylistRequest();
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
         request.setPlaylistId(1L);
         request.setSongId(2L);
         String requestAsString = objectMapper.writeValueAsString(request);
@@ -478,7 +476,7 @@ class PlaylistControllerTest {
 
         Song song = new Song();
 
-        AddSongToPlaylistRequest request = new AddSongToPlaylistRequest();
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
         request.setPlaylistId(1L);
         request.setSongId(2L);
         String requestAsString = objectMapper.writeValueAsString(request);
@@ -514,7 +512,7 @@ class PlaylistControllerTest {
         playlist.setOwner(10L);
         playlist.setSongs(Stream.of(new Song(), song).collect(Collectors.toList()));
 
-        AddSongToPlaylistRequest request = new AddSongToPlaylistRequest();
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
         request.setPlaylistId(playlist.getId());
         request.setSongId(song.getId());
         String requestAsString = objectMapper.writeValueAsString(request);
@@ -529,5 +527,126 @@ class PlaylistControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void removeSongFromPlaylist_playlistDoesntExist_shouldReturn404() throws Exception {
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
+        request.setPlaylistId(123L);
+        request.setSongId(1L);
+        String requestAsString = objectMapper.writeValueAsString(request);
+
+        when(playlistRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        mvc.perform(delete("/playlist")
+                .content(requestAsString)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removeSongFromPlaylist_playlistDoesntContainSong_shouldReturn404() throws Exception {
+        Principal principal = new PrincipalImpl("principal");
+        User user = new User();
+        user.setId(10L);
+
+        Song song = new Song();
+        song.setId(100L);
+        song.setViews(100);
+        song.setName("Test");
+        song.setContent("coontent");
+        song.setAuthor("author");
+        song.setAlbum("album");
+
+        Playlist playlist = new Playlist();
+        playlist.setId(1L);
+        playlist.setOwner(10L);
+        playlist.setSongs(Stream.of(song).collect(Collectors.toList()));
+
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
+        request.setPlaylistId(playlist.getId());
+        request.setSongId(1L);
+        String requestAsString = objectMapper.writeValueAsString(request);
+
+        when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+        mvc.perform(delete("/playlist")
+                .principal(principal)
+                .content(requestAsString)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removeSongFromPlaylist_principalIsNotOwnerOfPlaylist_shouldReturn403() throws Exception {
+        Principal principal = new PrincipalImpl("principal");
+        User user = new User();
+        user.setId(10L);
+
+        Song song = new Song();
+        song.setId(100L);
+        song.setViews(100);
+        song.setName("Test");
+        song.setContent("coontent");
+        song.setAuthor("author");
+        song.setAlbum("album");
+
+        Playlist playlist = new Playlist();
+        playlist.setId(1L);
+        playlist.setOwner(11L);
+        playlist.setSongs(Stream.of(song).collect(Collectors.toList()));
+
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
+        request.setPlaylistId(playlist.getId());
+        request.setSongId(song.getId());
+        String requestAsString = objectMapper.writeValueAsString(request);
+
+        when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+        mvc.perform(delete("/playlist")
+                .principal(principal)
+                .content(requestAsString)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void removeSongFromPlaylist_properData_shouldReturn200() throws Exception {
+        Principal principal = new PrincipalImpl("principal");
+        User user = new User();
+        user.setId(10L);
+
+        Song song = new Song();
+        song.setId(100L);
+        song.setViews(100);
+        song.setName("Test");
+        song.setContent("coontent");
+        song.setAuthor("author");
+        song.setAlbum("album");
+
+        Playlist playlist = new Playlist();
+        playlist.setId(1L);
+        playlist.setOwner(user.getId());
+        playlist.setSongs(Stream.of(song).collect(Collectors.toList()));
+
+        SongAndPlaylistRequest request = new SongAndPlaylistRequest();
+        request.setPlaylistId(playlist.getId());
+        request.setSongId(song.getId());
+        String requestAsString = objectMapper.writeValueAsString(request);
+
+        when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+        mvc.perform(delete("/playlist")
+                .principal(principal)
+                .content(requestAsString)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 }

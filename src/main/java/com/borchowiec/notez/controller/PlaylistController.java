@@ -4,7 +4,7 @@ import com.borchowiec.notez.exception.*;
 import com.borchowiec.notez.model.Playlist;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.model.User;
-import com.borchowiec.notez.payload.AddSongToPlaylistRequest;
+import com.borchowiec.notez.payload.SongAndPlaylistRequest;
 import com.borchowiec.notez.payload.PlaylistResponse;
 import com.borchowiec.notez.payload.PlaylistsResponse;
 import com.borchowiec.notez.payload.AddSongToPlaylistResponse;
@@ -107,7 +107,7 @@ public class PlaylistController {
 
     @PutMapping("/playlist")
     @Transactional
-    public AddSongToPlaylistResponse addSongToPlaylist(@RequestBody AddSongToPlaylistRequest request,
+    public AddSongToPlaylistResponse addSongToPlaylist(@RequestBody SongAndPlaylistRequest request,
                                                        Principal principal) {
         long playlistId = request.getPlaylistId();
         Playlist playlist = playlistRepository
@@ -137,5 +137,27 @@ public class PlaylistController {
         return response;
     }
 
-    // todo remove song from playlist
+    @Transactional
+    @DeleteMapping("/playlist")
+    public void removeSongFromPlaylist(@RequestBody SongAndPlaylistRequest request, Principal principal) {
+        long playlistId = request.getPlaylistId();
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new PlaylistNotFoundException(playlistId));
+
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Not found user of username: " + username));
+
+        if (user.getId() != playlist.getOwner()) {
+            String message = "User of id: " + user.getId() + " is not a owner of playlist of id: " + playlistId;
+            throw new NotOwnerException(message);
+        }
+
+        long songId = request.getSongId();
+        boolean removed = playlist.getSongs().removeIf((song -> song.getId() == songId));
+        if (!removed) {
+            throw new PlaylistDoesntContainSong(playlistId, songId);
+        }
+
+    }
 }
