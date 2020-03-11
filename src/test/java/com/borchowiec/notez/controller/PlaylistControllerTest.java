@@ -1,5 +1,6 @@
 package com.borchowiec.notez.controller;
 
+import com.borchowiec.notez.exception.UserNotFoundException;
 import com.borchowiec.notez.model.Playlist;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.model.User;
@@ -15,6 +16,7 @@ import com.borchowiec.notez.security.CustomUserDetailsService;
 import com.borchowiec.notez.security.JwtAuthenticationEntryPoint;
 import com.borchowiec.notez.security.JwtTokenProvider;
 import com.borchowiec.notez.service.PlaylistService;
+import com.borchowiec.notez.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,15 +83,18 @@ class PlaylistControllerTest {
     @MockBean
     private SongRepository songRepository;
 
+    @MockBean
+    private UserService userService;
+
     @BeforeEach
     void buildMvc() {
-        mvc = standaloneSetup(new PlaylistController(userRepository, playlistService, playlistRepository, songRepository))
-                .build();
+        mvc = standaloneSetup(new PlaylistController(userRepository, playlistService, playlistRepository,
+                songRepository, userService)).build();
     }
 
     @Test
     void createPlaylist() throws Exception {
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(new User()));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(new User());
 
         mvc.perform(post("/playlist")
                 .principal(new PrincipalImpl("principal"))
@@ -107,7 +112,7 @@ class PlaylistControllerTest {
         user.setId(1L);
 
         when(playlistRepository.findById(any())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist/1").principal(new PrincipalImpl("test")))
                 .andExpect(status().isOk());
@@ -115,9 +120,6 @@ class PlaylistControllerTest {
 
     @Test
     void removePlaylist_principalIsNotAOwnerOfPlaylist_shouldReturn403() throws Exception {
-        mvc = standaloneSetup(new PlaylistController(userRepository, playlistService, playlistRepository, songRepository))
-                .build();
-
         Playlist playlist = new Playlist();
         playlist.setOwner(2L);
 
@@ -125,7 +127,7 @@ class PlaylistControllerTest {
         user.setId(1L);
 
         when(playlistRepository.findById(any())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist/1").principal(new PrincipalImpl("test")))
                 .andExpect(status().isForbidden());
@@ -137,7 +139,7 @@ class PlaylistControllerTest {
         user.setId(1L);
 
         when(playlistRepository.findById(any())).thenReturn(Optional.empty());
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist/1").principal(new PrincipalImpl("test")))
                 .andExpect(status().isNotFound());
@@ -173,7 +175,7 @@ class PlaylistControllerTest {
 
         // when
         when(playlistRepository.findById(any())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
         ResultActions resultActions = mvc.perform(get("/playlist/1").principal(new PrincipalImpl("pri")))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -206,7 +208,7 @@ class PlaylistControllerTest {
 
         // when
         when(playlistRepository.findById(any())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
         ResultActions resultActions = mvc.perform(get("/playlist/1").principal(new PrincipalImpl("pri")))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -236,7 +238,7 @@ class PlaylistControllerTest {
 
         // when
         when(playlistRepository.findById(any())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenThrow(new UserNotFoundException(""));
         ResultActions resultActions = mvc.perform(get("/playlist/1"))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -403,7 +405,7 @@ class PlaylistControllerTest {
         // when
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
         when(songRepository.findById(anyLong())).thenReturn(Optional.of(song));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         ResultActions resultActions = mvc.perform(put("/playlist")
                 .principal(principal)
@@ -483,7 +485,7 @@ class PlaylistControllerTest {
 
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
         when(songRepository.findById(anyLong())).thenReturn(Optional.of(song));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(put("/playlist")
                 .principal(principal)
@@ -519,7 +521,7 @@ class PlaylistControllerTest {
 
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
         when(songRepository.findById(anyLong())).thenReturn(Optional.of(song));
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(put("/playlist")
                 .principal(principal)
@@ -570,7 +572,7 @@ class PlaylistControllerTest {
         String requestAsString = objectMapper.writeValueAsString(request);
 
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist")
                 .principal(principal)
@@ -605,7 +607,7 @@ class PlaylistControllerTest {
         String requestAsString = objectMapper.writeValueAsString(request);
 
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist")
                 .principal(principal)
@@ -640,7 +642,7 @@ class PlaylistControllerTest {
         String requestAsString = objectMapper.writeValueAsString(request);
 
         when(playlistRepository.findById(anyLong())).thenReturn(Optional.of(playlist));
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userService.getUserOfUsernameOrThrowException(anyString())).thenReturn(user);
 
         mvc.perform(delete("/playlist")
                 .principal(principal)

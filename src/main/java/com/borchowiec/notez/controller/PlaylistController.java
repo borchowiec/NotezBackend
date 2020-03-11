@@ -4,16 +4,16 @@ import com.borchowiec.notez.exception.*;
 import com.borchowiec.notez.model.Playlist;
 import com.borchowiec.notez.model.Song;
 import com.borchowiec.notez.model.User;
-import com.borchowiec.notez.payload.SongAndPlaylistRequest;
+import com.borchowiec.notez.payload.AddSongToPlaylistResponse;
 import com.borchowiec.notez.payload.PlaylistResponse;
 import com.borchowiec.notez.payload.PlaylistsResponse;
-import com.borchowiec.notez.payload.AddSongToPlaylistResponse;
+import com.borchowiec.notez.payload.SongAndPlaylistRequest;
 import com.borchowiec.notez.repository.PlaylistRepository;
 import com.borchowiec.notez.repository.SongRepository;
 import com.borchowiec.notez.repository.UserRepository;
 import com.borchowiec.notez.service.PlaylistService;
+import com.borchowiec.notez.service.UserService;
 import javassist.NotFoundException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
@@ -21,7 +21,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-// todo user get by username
 // todo playlist get by id
 
 @RestController
@@ -30,20 +29,22 @@ public class PlaylistController {
     private final PlaylistService playlist;
     private final PlaylistRepository playlistRepository;
     private final SongRepository songRepository;
+    private final UserService userService;
 
-    public PlaylistController(UserRepository userRepository, PlaylistService playlist, PlaylistRepository playlistRepository, SongRepository songRepository) {
+    public PlaylistController(UserRepository userRepository, PlaylistService playlist,
+                              PlaylistRepository playlistRepository, SongRepository songRepository,
+                              UserService userService) {
         this.userRepository = userRepository;
         this.playlist = playlist;
         this.playlistRepository = playlistRepository;
         this.songRepository = songRepository;
+        this.userService = userService;
     }
 
     @PostMapping("/playlist")
     public Playlist createPlaylist(@RequestBody Map<String, String> request, Principal principal) {
         String username = principal.getName();
-        User user = userRepository
-                .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Not found user of username: " + username));
+        User user = userService.getUserOfUsernameOrThrowException(username);
 
         return playlist.createPlaylist(request.get("playlistName"), user.getId());
     }
@@ -53,9 +54,8 @@ public class PlaylistController {
         Playlist playlist = playlistRepository.findById(playlistId)
                                 .orElseThrow(() -> new PlaylistNotFoundException(playlistId));
 
-        User user = userRepository
-                        .findByUsername(principal.getName())
-                        .orElseThrow(() -> new NotFoundException("Not found user of username: " + principal.getName()));
+        String username = principal.getName();
+        User user = userService.getUserOfUsernameOrThrowException(username);
 
         if (playlist.getOwner() != user.getId()) {
             String message = "Playlist of id " + playlistId + " doesn't belong to user of id " + user.getId();
@@ -73,9 +73,8 @@ public class PlaylistController {
 
         boolean isOwner = false;
         if (principal != null) {
-            User user = userRepository
-                    .findByUsername(principal.getName())
-                    .orElseThrow(() -> new NotFoundException("Not found user of username: " + principal.getName()));
+            String username = principal.getName();
+            User user = userService.getUserOfUsernameOrThrowException(username);
 
             isOwner = user.getId() == playlist.getOwner();
         }
@@ -119,8 +118,7 @@ public class PlaylistController {
         Song song = songRepository.findById(songId).orElseThrow(() -> new SongNotFoundException(songId));
 
         String username = principal.getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Not found user of username: " + username));
+        User user = userService.getUserOfUsernameOrThrowException(username);
 
         if (user.getId() != playlist.getOwner()) {
             throw new NotOwnerException("Currently logged in user is not a owner of playlist.");
@@ -147,8 +145,7 @@ public class PlaylistController {
                 .orElseThrow(() -> new PlaylistNotFoundException(playlistId));
 
         String username = principal.getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Not found user of username: " + username));
+        User user = userService.getUserOfUsernameOrThrowException(username);
 
         if (user.getId() != playlist.getOwner()) {
             String message = "User of id: " + user.getId() + " is not a owner of playlist of id: " + playlistId;
