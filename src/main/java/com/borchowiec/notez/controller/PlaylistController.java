@@ -21,6 +21,9 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+// todo user get by username
+// todo playlist get by id
+
 @RestController
 public class PlaylistController {
     private final UserRepository userRepository;
@@ -47,8 +50,7 @@ public class PlaylistController {
 
     @DeleteMapping("/playlist/{playlistId}")
     public void removePlaylist(@PathVariable long playlistId, Principal principal) throws NotFoundException {
-        Playlist playlist = playlistRepository
-                                .findById(playlistId)
+        Playlist playlist = playlistRepository.findById(playlistId)
                                 .orElseThrow(() -> new PlaylistNotFoundException(playlistId));
 
         User user = userRepository
@@ -158,6 +160,5 @@ public class PlaylistController {
         if (!removed) {
             throw new PlaylistDoesntContainSong(playlistId, songId);
         }
-
     }
 }
