@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static sun.plugin2.util.PojoUtil.toJson;
 
-@WebMvcTest
+@WebMvcTest(SongController.class)
 class SongControllerTest {
 
     @Autowired
