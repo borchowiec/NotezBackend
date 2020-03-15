@@ -21,7 +21,7 @@ public class Playlist {
     @Size(max = 50)
     private String name;
 
-    @OneToMany
+    @ManyToMany
     private List<Song> songs;
 
     @CreatedBy
