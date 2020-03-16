@@ -70,6 +70,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/report")
+            .permitAll()
             .antMatchers(HttpMethod.GET, "/songs", "/songs/*", "/song/*", "/playlist/*", "/playlists/*")
             .permitAll()
             .antMatchers(HttpMethod.PATCH,"/song/increment-views/*")
